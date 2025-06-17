@@ -1,0 +1,4 @@
+repository "Souls-Like 2025/Souls-Like 2025@16768160254945@cloud"
+  path "/"
+    br "/main"
+    co "/main"
