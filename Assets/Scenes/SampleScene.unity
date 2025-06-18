@@ -315,7 +315,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -3.2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -512,6 +512,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85a4e5f9babd940408e9432269fbc853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetTransform: {fileID: 0}
+  cameraPivot: {fileID: 1797355477}
+  cameraTransform: {fileID: 0}
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 9
+  cameraCollisionRadius: 0.2
+  cameraCollisionOffset: 0.2
+  minimumCollisionOffset: 0.2
+  cameraFollowSpeed: 0.2
+  cameraLookSpeed: 2
+  cameraPivotSpeed: 2
+  lookAngle: 0
+  pivotAngle: 0
+  minimumPivotAngle: -25
+  maximumPivotAngle: 55
 --- !u!4 &519451602
 Transform:
   m_ObjectHideFlags: 0
@@ -1058,8 +1074,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   movementInput: {x: 0, y: 0}
+  moveAmount: 0
   verticalInput: 0
   horizontalInput: 0
+  sprintInput: 0
+  cameraInput: {x: 0, y: 0}
+  cameraXInput: 0
+  cameraYInput: 0
 --- !u!136 &1048965578
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1107,9 +1128,9 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_Constraints: 112
-  m_CollisionDetection: 1
+  m_CollisionDetection: 0
 --- !u!114 &1048965580
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1122,7 +1143,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07a60ebf0baba6640af343bdb2aaaecc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementSpeed: 7
+  isSprinting: 0
+  walkingSpeed: 2
+  runningSpeed: 5
+  sprintingSpeed: 8
   rotationSpeed: 15
 --- !u!114 &1048965581
 MonoBehaviour:
@@ -1173,7 +1197,7 @@ Transform:
   m_GameObject: {fileID: 1797355476}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

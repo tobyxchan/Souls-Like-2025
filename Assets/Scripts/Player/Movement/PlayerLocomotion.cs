@@ -5,12 +5,15 @@ using UnityEngine;
 public class PlayerLocomotion : MonoBehaviour
 {
     InputManager inputManager;
-
     Vector3 moveDirection;
     Transform cameraObject;
     Rigidbody playerRigidbody;
+    public bool isSprinting;
 
-    public float movementSpeed = 7;
+    [Header("Movement Settings")]
+    public float walkingSpeed = 2;
+    public float runningSpeed = 5;
+    public float sprintingSpeed = 8;
     public float rotationSpeed = 15;
 
 
@@ -34,7 +37,25 @@ public class PlayerLocomotion : MonoBehaviour
         moveDirection = moveDirection + cameraObject.right * inputManager.horizontalInput;
         moveDirection.Normalize();
         moveDirection.y = 0;
-        moveDirection = moveDirection * movementSpeed;
+
+        if (isSprinting)
+        {
+            moveDirection = moveDirection * sprintingSpeed;
+        }
+        else
+        {
+            if (inputManager.moveAmount >= 0.5f)
+            {
+                moveDirection = moveDirection * runningSpeed;
+            }
+            else
+            {
+                moveDirection = moveDirection * walkingSpeed;
+            }
+        }
+
+        // Check walking, running or sprinting
+
 
         Vector3 movementVelocity = moveDirection;
         playerRigidbody.velocity = movementVelocity;
