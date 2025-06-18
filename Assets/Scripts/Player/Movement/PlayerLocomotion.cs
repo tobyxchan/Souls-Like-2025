@@ -14,8 +14,8 @@ public class PlayerLocomotion : MonoBehaviour
     public float inAirTimer;
     public float leapingVelocity;
     public float fallingVelocity;
-    public float rayCastHeightOffset = 0.5f;
-    public float maxDistance = 1;
+    public float rayCastHeightOffset = 0.51f;
+    public float maxDistance = 1f;
     public LayerMask terrainLayer;
 
     [Header("Movement Flags")]
@@ -115,10 +115,10 @@ public class PlayerLocomotion : MonoBehaviour
 
             inAirTimer += Time.deltaTime;
             playerRigidbody.AddForce(transform.forward * leapingVelocity);
-            playerRigidbody.AddForce(-Vector3.up * fallingVelocity * inAirTimer);
+            playerRigidbody.AddForce(Vector3.down * fallingVelocity * inAirTimer);
         }
 
-        if (Physics.SphereCast(rayCastOrigin, 0.2f, -Vector3.up, out hit, maxDistance, terrainLayer))
+        if (Physics.SphereCast(rayCastOrigin, 0.5f, Vector3.down, out hit, maxDistance, terrainLayer))
         {
             if (!isGrounded && !playerManager.isInteracting)
             {
@@ -127,6 +127,7 @@ public class PlayerLocomotion : MonoBehaviour
 
             inAirTimer = 0;
             isGrounded = true;
+            playerManager.isInteracting = false;
         }
         else
         {
