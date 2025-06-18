@@ -77,30 +77,34 @@ public class CameraManager : MonoBehaviour
 
     private void HandleCameraCollisions()
     {
-        float targetPosition = defaultPosition;
+        // Start with the default camera distance
+        float targetPosition = defaultPosition; 
+
+        // Maximum distance when no collision occurs
+        float distance = Mathf.Abs(defaultPosition); 
+
         RaycastHit hit;
-        Vector3 direction = cameraTransform.position - cameraPivot.position;
-        direction.Normalize();
 
-        if (Physics.SphereCast(
-            cameraPivot.transform.position,
-            cameraCollisionRadius,
-            direction,
-            out hit,
-            Mathf.Abs(targetPosition),
-            collisionLayers)
-        )
+        // Calculate direction vector from pivot to camera
+        Vector3 direction = (cameraTransform.position - cameraPivot.position).normalized;
+
+        // Perform SphereCast to detect obstacles
+        if (Physics.SphereCast(cameraPivot.position, cameraCollisionRadius, direction, out hit, Mathf.Abs(defaultPosition), collisionLayers))
         {
-            float distance = Vector3.Distance(cameraPivot.position, hit.point);
-            targetPosition = targetPosition - (distance - cameraCollisionOffset);
+            // Calculate distance to the obstacle
+            distance = Vector3.Distance(cameraPivot.position, hit.point);
+
+            // Adjust target position based on collision, but ensure it stays within the minimum offset
+            targetPosition = -(Mathf.Max(distance - cameraCollisionOffset, minimumCollisionOffset));
+        }
+        else
+        {
+            // No collision; use the default position
+            targetPosition = defaultPosition;
         }
 
-        if (Mathf.Abs(targetPosition) < minimumCollisionOffset)
-        {
-            targetPosition -= minimumCollisionOffset;
-        }
-
-        cameraVectorPosition.z = Mathf.Lerp(cameraTransform.localPosition.z, targetPosition, 0.2f);
+        // Smoothly interpolate the camera's position
+        cameraVectorPosition.z = Mathf.Lerp(cameraTransform.localPosition.z, targetPosition, 0.4f);
         cameraTransform.localPosition = cameraVectorPosition;
     }
 }
