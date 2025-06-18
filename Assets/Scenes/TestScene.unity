@@ -1349,7 +1349,7 @@ CapsuleCollider:
   m_Radius: 0.28
   m_Height: 1.8
   m_Direction: 1
-  m_Center: {x: 0, y: 0.9, z: 0}
+  m_Center: {x: 0, y: 0.9, z: 0.03}
 --- !u!54 &1048965579
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1389,7 +1389,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07a60ebf0baba6640af343bdb2aaaecc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  inAirTimer: 0
+  leapingVelocity: 3
+  fallingVelocity: 33
+  rayCastHeightOffset: 0.5
+  maxDistance: 1
+  terrainLayer:
+    serializedVersion: 2
+    m_Bits: 8
   isSprinting: 0
+  isGrounded: 0
   walkingSpeed: 2
   runningSpeed: 5
   sprintingSpeed: 8
@@ -1406,6 +1415,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1384988f515a68641b1945a6b367a106, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isInteracting: 0
 --- !u!114 &1048965582
 MonoBehaviour:
   m_ObjectHideFlags: 0
