@@ -12,9 +12,7 @@ public class PlayerLocomotion : MonoBehaviour
 
     [Header("Falling")]
     private bool isAirborne;
-    public float inAirTimer;
     public float leapingVelocity;
-    public float fallingVelocity;
 
     [Header("Ground Check")]
     public float rayCastHeightOffset = 1f;
@@ -24,12 +22,17 @@ public class PlayerLocomotion : MonoBehaviour
     [Header("Movement Flags")]
     public bool isSprinting;
     public bool isGrounded;
+    public bool isJumping;
 
     [Header("Movement Settings")]
     public float walkingSpeed = 2;
     public float runningSpeed = 5;
     public float sprintingSpeed = 8;
     public float rotationSpeed = 15;
+
+    [Header("Jump Settings")]
+    public float jumpHeight = 3;
+    public float gravityIntensity = 15f;
 
 
     private void Awake()
@@ -38,6 +41,7 @@ public class PlayerLocomotion : MonoBehaviour
         inputManager = GetComponent<InputManager>();
         animatorManager = GetComponent<AnimatorManager>();
         playerRigidbody = GetComponent<Rigidbody>();
+        playerRigidbody.useGravity = false;
         cameraObject = Camera.main.transform;
     }
 
@@ -46,8 +50,9 @@ public class PlayerLocomotion : MonoBehaviour
     {
         HandleFallingAndLanding();
 
-        // Change this later to allow air control
+        // Change this later if wanted
         if (playerManager.isInteracting) return;
+        if (isJumping) return;
 
         HandleMovement();
         HandleRotation();
@@ -105,55 +110,61 @@ public class PlayerLocomotion : MonoBehaviour
 
     private void HandleFallingAndLanding()
     {
-        // 1. Cast from chest height
+        // 1) Cast from chest height
         Vector3 raycastOrigin = transform.position + Vector3.up * rayCastHeightOffset;
         RaycastHit hit;
 
-        // 2. Detect ground with SphereCast
-        bool hittingGround = Physics.SphereCast(
+        // 2) Detect ground with SphereCast and vertical velocity
+        bool hittingGround = Physics.Raycast(
             raycastOrigin,
-            0.5f,
             Vector3.down,
             out hit,
             maxDistance,
             terrainLayer
         );
+        isGrounded = hittingGround;
 
-        // 3. If not touching ground, must be airborne
-        if (!hittingGround)
+        // 3) Grab our current vertical velocity
+        float verticalVelocity = playerRigidbody.velocity.y;
+
+        // ---LANDING--- (only once)
+        if (hittingGround && isAirborne)
         {
-            // Just stepped off?
-            if (!isAirborne)
-            {
-                isAirborne = true;
-                animatorManager.PlayTargetAnimation("Falling", true);
+            animatorManager.PlayTargetAnimation("Land", true);
+            animatorManager.animator.SetBool("isJumping", false);
+            playerManager.isInteracting = false;
+            isAirborne = false;
 
-                // One-time force behind player
-                playerRigidbody.AddForce(transform.forward * leapingVelocity,ForceMode.VelocityChange);
-            }
-
-            // Start timer and add downward force
-            inAirTimer += Time.deltaTime;
-            playerRigidbody.AddForce(Vector3.down * fallingVelocity * inAirTimer);
-
-            isGrounded = false;
-            // No more touching ground, so no need to reset playerManager.isInteracting here
+            // kill horizontal drift
+            Vector3 vel = playerRigidbody.velocity;
+            playerRigidbody.velocity = new Vector3(0f, vel.y, 0f);
         }
-        else
+        // ---FALLING--- (only on descent)
+        else if (!hittingGround && verticalVelocity < 0f && !isAirborne)
         {
-            // We are touching the ground
-            if (isAirborne)
-            {
-                // Play landing animation once, on first hit
-                animatorManager.PlayTargetAnimation("Land", true);
-                inAirTimer = 0f;
-                isAirborne = false;
+            isAirborne = true;
+            animatorManager.PlayTargetAnimation("Falling", true);
+        }
 
-                // Kill horizontal drift
-                Vector3 velocity = playerRigidbody.velocity;
-                playerRigidbody.velocity = new Vector3(0f, velocity.y, 0f);
-            }
-            isGrounded = true;
+        // Apply custom gravity whenever off the ground
+        if (!isGrounded)
+        {
+            playerRigidbody.AddForce(Vector3.down * gravityIntensity, ForceMode.Acceleration);
+        }
+    }
+
+    public void HandleJumping()
+    {
+        if (isGrounded)
+        {
+            animatorManager.PlayTargetAnimation("Jump", true);
+            animatorManager.animator.SetBool("isJumping", true);
+
+            float jumpingVelocity = Mathf.Sqrt(2f * Mathf.Abs(gravityIntensity) * jumpHeight);
+
+            Vector3 playerVelocity = moveDirection;
+            playerVelocity.y = jumpingVelocity;
+            playerRigidbody.velocity = playerVelocity;
         }
     }
 }

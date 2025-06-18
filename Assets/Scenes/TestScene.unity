@@ -574,7 +574,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
@@ -1551,6 +1551,7 @@ MonoBehaviour:
   verticalInput: 0
   horizontalInput: 0
   sprintInput: 0
+  jumpInput: 0
   cameraInput: {x: 0, y: 0}
   cameraXInput: 0
   cameraYInput: 0
@@ -1616,20 +1617,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07a60ebf0baba6640af343bdb2aaaecc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inAirTimer: 0
   leapingVelocity: 3
-  fallingVelocity: 33
   rayCastHeightOffset: 1
-  maxDistance: 0.5
+  maxDistance: 1
   terrainLayer:
     serializedVersion: 2
     m_Bits: 8
   isSprinting: 0
   isGrounded: 0
+  isJumping: 0
   walkingSpeed: 2
   runningSpeed: 5
   sprintingSpeed: 8
   rotationSpeed: 15
+  jumpHeight: 3
+  gravityIntensity: 40
 --- !u!114 &1048965581
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1655,6 +1657,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fab9ec7a80074aa499d89624b573d8c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  animator: {fileID: 1048965583}
+--- !u!95 &1048965583 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: a9dd6fa1e9a629744b675820bae11a76,
+    type: 3}
+  m_PrefabInstance: {fileID: 588501099}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1557787296
 GameObject:
   m_ObjectHideFlags: 0
