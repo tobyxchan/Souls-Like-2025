@@ -11,11 +11,14 @@ public class PlayerLocomotion : MonoBehaviour
     Rigidbody playerRigidbody;
 
     [Header("Falling")]
+    private bool isAirborne;
     public float inAirTimer;
     public float leapingVelocity;
     public float fallingVelocity;
-    public float rayCastHeightOffset = 0.51f;
-    public float maxDistance = 1f;
+
+    [Header("Ground Check")]
+    public float rayCastHeightOffset = 1f;
+    public float maxDistance = 0.5f;
     public LayerMask terrainLayer;
 
     [Header("Movement Flags")]
@@ -102,36 +105,55 @@ public class PlayerLocomotion : MonoBehaviour
 
     private void HandleFallingAndLanding()
     {
+        // 1. Cast from chest height
+        Vector3 raycastOrigin = transform.position + Vector3.up * rayCastHeightOffset;
         RaycastHit hit;
-        Vector3 rayCastOrigin = transform.position;
-        rayCastOrigin.y += rayCastHeightOffset;
 
-        if (!isGrounded)
+        // 2. Detect ground with SphereCast
+        bool hittingGround = Physics.SphereCast(
+            raycastOrigin,
+            0.5f,
+            Vector3.down,
+            out hit,
+            maxDistance,
+            terrainLayer
+        );
+
+        // 3. If not touching ground, must be airborne
+        if (!hittingGround)
         {
-            if (!playerManager.isInteracting)
+            // Just stepped off?
+            if (!isAirborne)
             {
+                isAirborne = true;
                 animatorManager.PlayTargetAnimation("Falling", true);
+
+                // One-time force behind player
+                playerRigidbody.AddForce(transform.forward * leapingVelocity,ForceMode.VelocityChange);
             }
 
+            // Start timer and add downward force
             inAirTimer += Time.deltaTime;
-            playerRigidbody.AddForce(transform.forward * leapingVelocity);
             playerRigidbody.AddForce(Vector3.down * fallingVelocity * inAirTimer);
-        }
 
-        if (Physics.SphereCast(rayCastOrigin, 0.5f, Vector3.down, out hit, maxDistance, terrainLayer))
-        {
-            if (!isGrounded && !playerManager.isInteracting)
-            {
-                animatorManager.PlayTargetAnimation("Land", true);
-            }
-
-            inAirTimer = 0;
-            isGrounded = true;
-            playerManager.isInteracting = false;
+            isGrounded = false;
+            // No more touching ground, so no need to reset playerManager.isInteracting here
         }
         else
         {
-            isGrounded = false;
+            // We are touching the ground
+            if (isAirborne)
+            {
+                // Play landing animation once, on first hit
+                animatorManager.PlayTargetAnimation("Land", true);
+                inAirTimer = 0f;
+                isAirborne = false;
+
+                // Kill horizontal drift
+                Vector3 velocity = playerRigidbody.velocity;
+                playerRigidbody.velocity = new Vector3(0f, velocity.y, 0f);
+            }
+            isGrounded = true;
         }
     }
 }
