@@ -15,9 +15,9 @@ public class PlayerLocomotion : MonoBehaviour
     public float leapingVelocity;
 
     [Header("Ground Check")]
-    public float rayCastHeightOffset = 1f;
-    public float maxDistance = 0.5f;
+    private CapsuleCollider capsuleCollider;
     public LayerMask terrainLayer;
+    public float groundCheckDistance = 0.75f;
 
     [Header("Movement Flags")]
     public bool isSprinting;
@@ -31,11 +31,13 @@ public class PlayerLocomotion : MonoBehaviour
     public float rotationSpeed = 15;
 
     [Header("Jump Settings")]
-    public float jumpHeight = 3;
-    public float gravityIntensity = 15f;
+    public float jumpHeight = 3;            // Controls how much the player's jump pushes them upwards
+    public float gravityIntensity = 30f;    // Controls how fast the player falls when in the air
+    public float airRotationLimit = 35f;    // Degrees left and right that the player can rotate in midair
+    public float airControlDuration = 2f;   // How many seconds in the air before the player can rotate fully
+    private float airTimer = 0f;            // How long the player has been in the air for
     private Vector3 airDirection;
     private float airSpeed;
-    public float airRotationLimit = 55f; // Degrees left and right that the player can rotate in midair
 
 
     private void Awake()
@@ -43,6 +45,7 @@ public class PlayerLocomotion : MonoBehaviour
         playerManager = GetComponent<PlayerManager>();
         inputManager = GetComponent<InputManager>();
         animatorManager = GetComponent<AnimatorManager>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
         playerRigidbody = GetComponent<Rigidbody>();
         playerRigidbody.useGravity = false;
         cameraObject = Camera.main.transform;
@@ -101,69 +104,77 @@ public class PlayerLocomotion : MonoBehaviour
 
     private void HandleRotation()
     {
-        // Build the raw input look direction
-        Vector3 targetDirection = Vector3.zero;
-
-        targetDirection = cameraObject.forward * inputManager.verticalInput;
-        targetDirection = targetDirection + cameraObject.right * inputManager.horizontalInput;
+        // 1) compute raw input-based direction
+        Vector3 targetDirection = cameraObject.forward * inputManager.verticalInput
+                                + cameraObject.right * inputManager.horizontalInput;
         targetDirection.y = 0f;
-
         if (targetDirection.sqrMagnitude > 0.001f)
-        {
             targetDirection.Normalize();
-        }
         else
-        {
             targetDirection = transform.forward;
-        }
 
-        // If in the air, clamp around initial jump direction
-        if (!isGrounded)
+        // 2) if we're in the air AND still within the “limited control” window…
+        if (!isGrounded && airTimer < airControlDuration)
         {
-            // Only clamp if there IS input
+            // only clamp when there's actual input
             if (inputManager.horizontalInput != 0f || inputManager.verticalInput != 0f)
             {
-                // Find angle from jump-time direction
                 float angle = Vector3.SignedAngle(airDirection, targetDirection, Vector3.up);
-                float clampedAngle = Mathf.Clamp(angle, -airRotationLimit, airRotationLimit);
-
-                // Rotate in the stored air direction, by the clamped amount
-                Quaternion off = Quaternion.AngleAxis(clampedAngle, Vector3.up);
-                targetDirection = off * airDirection;
+                float clamped = Mathf.Clamp(angle, -airRotationLimit, airRotationLimit);
+                targetDirection = Quaternion.AngleAxis(clamped, Vector3.up) * airDirection;
             }
             else
             {
-                // No input => face the current direction
+                // no input → keep facing current forward
                 targetDirection = transform.forward;
             }
         }
+        // else: either we're grounded or airTime ≥ threshold,
+        // so targetDirection stays as the full-input look direction
 
-        // Slerp into final target direction
-        Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+        // 3) slerp into the chosen direction
+        Quaternion targetRot = Quaternion.LookRotation(targetDirection);
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
-            targetRotation,
+            targetRot,
             rotationSpeed * Time.deltaTime
         );
     }
 
     private void HandleFallingAndLanding()
     {
-        // 1) Cast from chest height
-        Vector3 raycastOrigin = transform.position + Vector3.up * rayCastHeightOffset;
-        RaycastHit hit;
+        // 1) Use collider's world-space center
+        Vector3 origin = capsuleCollider.bounds.center;
+        float sphereRadius = capsuleCollider.radius;
 
-        // 2) Detect ground with SphereCast and vertical velocity
-        bool hittingGround = Physics.Raycast(
-            raycastOrigin,
+        // 2) Calculate how far the center must move for the sphere to touch the floor
+        float halfHeight = capsuleCollider.bounds.extents.y;
+        float castDistance = (halfHeight - sphereRadius) + groundCheckDistance;
+
+        // 3) Sweep the sphere down the desired distance
+        RaycastHit hit;
+        bool hittingGround = Physics.SphereCast(
+            origin,
+            sphereRadius,
             Vector3.down,
             out hit,
-            maxDistance,
+            castDistance,
             terrainLayer
         );
+        
         isGrounded = hittingGround;
 
-        // 3) Grab our current vertical velocity
+        // 4) Track how long we've been off the ground
+        if (!isGrounded)
+        {
+            airTimer += Time.deltaTime;
+        }
+        else
+        {
+            airTimer = 0f;
+        }
+
+        // 5) Grab our current vertical velocity
         float verticalVelocity = playerRigidbody.velocity.y;
 
         // ---LANDING--- (only once)
