@@ -33,6 +33,9 @@ public class PlayerLocomotion : MonoBehaviour
     [Header("Jump Settings")]
     public float jumpHeight = 3;
     public float gravityIntensity = 15f;
+    private Vector3 airDirection;
+    private float airSpeed;
+    public float airRotationLimit = 55f; // Degrees left and right that the player can rotate in midair
 
 
     private void Awake()
@@ -50,9 +53,8 @@ public class PlayerLocomotion : MonoBehaviour
     {
         HandleFallingAndLanding();
 
-        // Change this later if wanted
-        if (playerManager.isInteracting) return;
-        if (isJumping) return;
+        // Only block movement if interacting with something on the ground
+        if (playerManager.isInteracting && isGrounded) return;
 
         HandleMovement();
         HandleRotation();
@@ -81,31 +83,68 @@ public class PlayerLocomotion : MonoBehaviour
             }
         }
 
-        // Check walking, running or sprinting
-
-
         Vector3 movementVelocity = moveDirection;
+
+        if (!isGrounded)
+        {
+            // Lock air speed to ground speed
+            Vector3 horizontal = airDirection * airSpeed;
+            movementVelocity.x = horizontal.x;
+            movementVelocity.z = horizontal.z;
+
+            // Keep the vertical velocity
+            movementVelocity.y = playerRigidbody.velocity.y;
+        }
+
         playerRigidbody.velocity = movementVelocity;
     }
 
     private void HandleRotation()
     {
+        // Build the raw input look direction
         Vector3 targetDirection = Vector3.zero;
 
         targetDirection = cameraObject.forward * inputManager.verticalInput;
         targetDirection = targetDirection + cameraObject.right * inputManager.horizontalInput;
-        targetDirection.Normalize();
-        targetDirection.y = 0;
+        targetDirection.y = 0f;
 
-        if (targetDirection == Vector3.zero)
+        if (targetDirection.sqrMagnitude > 0.001f)
+        {
+            targetDirection.Normalize();
+        }
+        else
         {
             targetDirection = transform.forward;
         }
 
-        Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
-        Quaternion playerRotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+        // If in the air, clamp around initial jump direction
+        if (!isGrounded)
+        {
+            // Only clamp if there IS input
+            if (inputManager.horizontalInput != 0f || inputManager.verticalInput != 0f)
+            {
+                // Find angle from jump-time direction
+                float angle = Vector3.SignedAngle(airDirection, targetDirection, Vector3.up);
+                float clampedAngle = Mathf.Clamp(angle, -airRotationLimit, airRotationLimit);
 
-        transform.rotation = playerRotation;
+                // Rotate in the stored air direction, by the clamped amount
+                Quaternion off = Quaternion.AngleAxis(clampedAngle, Vector3.up);
+                targetDirection = off * airDirection;
+            }
+            else
+            {
+                // No input => face the current direction
+                targetDirection = transform.forward;
+            }
+        }
+
+        // Slerp into final target direction
+        Quaternion targetRotation = Quaternion.LookRotation(targetDirection);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            rotationSpeed * Time.deltaTime
+        );
     }
 
     private void HandleFallingAndLanding()
@@ -157,6 +196,10 @@ public class PlayerLocomotion : MonoBehaviour
     {
         if (isGrounded)
         {
+            // Capture movement speed before jumping
+            airDirection = moveDirection.normalized;
+            airSpeed = moveDirection.magnitude;
+
             animatorManager.PlayTargetAnimation("Jump", true);
             animatorManager.animator.SetBool("isJumping", true);
 
