@@ -779,12 +779,12 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -4
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.651
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
@@ -1833,7 +1833,7 @@ MonoBehaviour:
   terrainLayer:
     serializedVersion: 2
     m_Bits: 8
-  groundCheckDistance: 0.05
+  groundCheckDistance: 0.01
   isSprinting: 0
   isGrounded: 0
   isJumping: 0
@@ -1844,7 +1844,8 @@ MonoBehaviour:
   jumpHeight: 3
   gravityIntensity: 30
   airRotationLimit: 35
-  airControlDuration: 2
+  airControlDuration: 1.5
+  groundLostThreshold: 0.1
 --- !u!114 &1048965581
 MonoBehaviour:
   m_ObjectHideFlags: 0
