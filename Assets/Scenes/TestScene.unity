@@ -209,7 +209,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -3.2}
+  m_LocalPosition: {x: 0, y: 0, z: -3.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -779,7 +779,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
@@ -794,7 +794,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
@@ -804,7 +804,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
@@ -819,7 +819,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 90
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a9dd6fa1e9a629744b675820bae11a76,
         type: 3}
@@ -1786,10 +1786,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.25
+  m_Radius: 0.3
   m_Height: 1.8
   m_Direction: 1
-  m_Center: {x: -1.7763446e-17, y: 0.91095775, z: 0}
+  m_Center: {x: 0, y: 0.92, z: -0.03}
 --- !u!54 &1048965579
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1812,7 +1812,7 @@ Rigidbody:
     m_Bits: 0
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
-  m_UseGravity: 1
+  m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 112
@@ -1829,7 +1829,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07a60ebf0baba6640af343bdb2aaaecc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  leapingVelocity: 3
   terrainLayer:
     serializedVersion: 2
     m_Bits: 8
@@ -1841,11 +1840,13 @@ MonoBehaviour:
   runningSpeed: 5
   sprintingSpeed: 8
   rotationSpeed: 15
-  jumpHeight: 3
+  jumpHeight: 1.5
   gravityIntensity: 30
   airRotationLimit: 35
   airControlDuration: 1.5
   groundLostThreshold: 0.1
+  jumpWindupFrames: 5
+  landingLockFrames: 3
 --- !u!114 &1048965581
 MonoBehaviour:
   m_ObjectHideFlags: 0
